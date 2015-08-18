@@ -1,31 +1,52 @@
-library(caret)
-library(randomForest)
-#load the data
-data_train <- read.table(file='pml-training.csv', header=T, sep=',', na.strings = c("NA","#DIV/0!"))
+#Assignment write-up
 
-#Find and leave out variables with too many N/A values and variables for case identification
+First I am going to load libraies that will be used
+
+```
+library(randomForest)
+```
+
+Then I load the training data set.
+
+```
+data_train <- read.table(file='pml-training.csv', header=T, sep=',', na.strings = c("NA","#DIV/0!"))
+str(data_tran)
+```
+
+At first glance there are many variables that contain N/A values, so I leave out all, that have more than 100 missing values. I also remove first 7 variables that serve for the case identification purpose. The aim of the model is to predict activity class from device data, these variables are obsolete outside data exploration.
+
+```
 keep <- c()
 for (i in 1:160){
   if (length(which(is.na(data_train[,i])))<100){keep <- c(keep,i)}
 }
 
 data_clean <- data_train[,keep[8:length(keep)]]
+```
 
-#Split the data into training and testing set
+Since there are more than 19000 observations in the data, I will simply split the dataset into two parts - training for model building (60%) and testing for model evaluation (40%).
+
+```
 set.seed(123)
 index_train <- createDataPartition(y=data_clean$classe,p=0.6,list=F)
 train <- data_clean[index_train,]
 test <- data_clean[-index_train,]
-
-#Build the model
+```
+First thing I try is the randomForrest algorithm as this is a classification problem. I do not do any further pre-processing of the variables because this algorithm does not require it. The first model is built on the training set.
+```
 modelFit <- randomForest(classe~.,data=train)
 modelFit$confusion
-#Run the model on the testing data
+```
+
+After careful examination of the confusion matrix it seems that the very first model has very reasonable accuracy of over 99%. SO I run the model on the remaining 40% of the data to evaluate its out of sample error, which seems to be well below 0.5%. This kind of accuracy for this model should be expected for all data collected in similar manner. I consider the model accurate enough for purposes of activity class prediction so I will not be trying more complicated algorithms.
+```
 pred <- test$classe==predict(modelFit,test[,-53])
 table(pred)
 as.numeric(table(pred)[1]/(table(pred)[1]+table(pred)[2]))
-
-#Run the model on the 20 test cases
+```
+Finally, I run the model on the 20 test cases to submit for the second part of the assignment.
+```
 data_test <- read.table(file='pml-testing.csv', header=T, sep=',', na.strings = c("NA","#DIV/0!"))
 datat_clean <- data_test[,keep[8:length(keep)]]
 pred_test <- predict(modelFit,datat_clean[,-53])
+```
