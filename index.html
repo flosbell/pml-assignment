@@ -19,10 +19,65 @@
     </section>
 
     <section class="main-content">
-      <h1>
-<a id="practical-machine-learning---assignment-for-peer-review" class="anchor" href="#practical-machine-learning---assignment-for-peer-review" aria-hidden="true"><span class="octicon octicon-link"></span></a>Practical Machine learning - Assignment for peer review</h1>
+      <p></p>
 
-<p>Please see the file pml-assignmet.rmd</p>
+<h1>
+<a id="assignment-write-up" class="anchor" href="#assignment-write-up" aria-hidden="true"><span class="octicon octicon-link"></span></a>Assignment write-up</h1>
+
+<p>First I am going to load libraies that will be used</p>
+
+<pre><code>library(randomForest)
+</code></pre>
+
+<p>Then I load the training data set.</p>
+
+<pre><code>data_train &lt;- read.table(file='pml-training.csv', header=T, sep=',', na.strings = c("NA","#DIV/0!"))
+str(data_tran)
+</code></pre>
+
+<p>At first glance there are many variables that contain N/A values, so I leave out all, that have more than 100 missing values. I also remove first 7 variables that serve for the case identification purpose. The aim of the model is to predict activity class from device data, these variables are obsolete outside data exploration.</p>
+
+<pre><code>keep &lt;- c()
+for (i in 1:160){
+  if (length(which(is.na(data_train[,i])))&lt;100){keep &lt;- c(keep,i)}
+}
+
+data_clean &lt;- data_train[,keep[8:length(keep)]]
+</code></pre>
+
+<p>Since there are more than 19000 observations in the data, I will simply split the dataset into two parts - training for model building (60%) and testing for model evaluation (40%).</p>
+
+<pre><code>set.seed(123)
+index_train &lt;- createDataPartition(y=data_clean$classe,p=0.6,list=F)
+train &lt;- data_clean[index_train,]
+test &lt;- data_clean[-index_train,]
+</code></pre>
+
+<p>First thing I try is the randomForrest algorithm as this is a classification problem. I do not do any further pre-processing of the data because this algorithm does not require it. The first model is built on the training set.</p>
+
+<pre><code>modelFit &lt;- randomForest(classe~.,data=train)
+modelFit$confusion
+</code></pre>
+
+<p>After careful examination of the confusion matrix it seems that the very first model has very reasonable accuracy of over 99%. I run the model on the remaining 40% of the data to evaluate its out of sample error.</p>
+
+<pre><code>pred &lt;- test$classe==predict(modelFit,test[,-53])
+table(pred)
+as.numeric(table(pred)[1]/(table(pred)[1]+table(pred)[2]))
+</code></pre>
+
+<p>It seems to be well below 0.5%. This kind of accuracy for this model should be expected for all data collected in similar manner. I consider the model accurate enough for purposes of activity class prediction so I will not be trying more complicated algorithms.</p>
+
+<p>Finally, I run the model on the 20 test cases to submit for the second part of the assignment.</p>
+
+<pre><code>data_test &lt;- read.table(file='pml-testing.csv', header=T, sep=',', na.strings = c("NA","#DIV/0!"))
+datat_clean &lt;- data_test[,keep[8:length(keep)]]
+pred_test &lt;- predict(modelFit,datat_clean[,-53])
+</code></pre>
+
+<p></p>
+
+<p></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/flosbell/pml-assignment">Pml-assignment</a> is maintained by <a href="https://github.com/flosbell">flosbell</a>.</span>
