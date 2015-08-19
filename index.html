@@ -57,13 +57,23 @@ test &lt;- data_clean[-index_train,]
 
 <pre><code>modelFit &lt;- randomForest(classe~.,data=train)
 modelFit$confusion
+     A    B    C    D    E  class.error
+A 3345    1    0    1    1 0.0008960573
+B   11 2264    4    0    0 0.0065818341
+C    1   18 2030    5    0 0.0116845180
+D    1    0   26 1901    2 0.0150259067
+E    0    0    2    5 2158 0.0032332564
 </code></pre>
 
 <p>After careful examination of the confusion matrix it seems that the very first model has very reasonable accuracy of over 99%. I run the model on the remaining 40% of the data to evaluate its out of sample error.</p>
 
 <pre><code>pred &lt;- test$classe==predict(modelFit,test[,-53])
 table(pred)
+pred
+FALSE  TRUE 
+   46  7800 
 as.numeric(table(pred)[1]/(table(pred)[1]+table(pred)[2]))
+0.00586286
 </code></pre>
 
 <p>It seems to be well below 0.5%. This kind of accuracy for this model should be expected for all data collected in similar manner. I consider the model accurate enough for purposes of activity class prediction so I will not be trying more complicated algorithms.</p>
